@@ -212,7 +212,7 @@
 
   async function loadData() {
     try {
-      const response = await fetch('./data/hotspots.json');
+      const response = await fetch('./hotspots.json');
       if (!response.ok) throw new Error(`Dataset request failed (${response.status})`);
       const data = await response.json();
       if (!data || typeof data !== 'object' || Array.isArray(data)) {
