@@ -1,498 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>SO FIRE — Global Harmonized Fire & Burn Activity Intelligence</title>
-  <script src="https://unpkg.com/globe.gl"></script>
-  <style>
-    :root {
-      --bg-dark: #05070d;
-      --panel-bg: rgba(10, 15, 29, 0.92);
-      --border-color: #1e293b;
-      --accent-orange: #f97316;
-      --accent-red: #ef4444;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-    }
-    body {
-      margin: 0;
-      background: var(--bg-dark);
-      color: var(--text-main);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      overflow: hidden;
-    }
-    #globeViz { width: 100vw; height: 100vh; }
-    .panel {
-      position: absolute;
-      background: var(--panel-bg);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 14px;
-      z-index: 10;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
-    }
-    #top-left { top: 20px; left: 20px; width: 310px; }
-    #top-right { top: 20px; right: 20px; width: 330px; }
-    #bottom-left { bottom: 20px; left: 20px; width: 300px; max-height: 82vh; overflow-y: auto; }
-    #bottom-right { bottom: 20px; right: 20px; width: 250px; }
-    h1 {
-      margin: 0 0 2px 0;
-      font-size: 18px;
-      letter-spacing: 0.5px;
-      color: var(--accent-orange);
-      font-weight: 700;
-    }
-    .subtitle {
-      font-size: 10px;
-      color: var(--text-muted);
-      line-height: 1.3;
-      margin-bottom: 8px;
-    }
-    .section-title {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 6px;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 3px;
-    }
-    .control-group { margin-bottom: 8px; }
-    label {
-      font-size: 11px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      margin-bottom: 4px;
-      color: #cbd5e1;
-    }
-    input[type="checkbox"] {
-      accent-color: var(--accent-orange);
-      width: 13px; height: 13px;
-      cursor: pointer;
-    }
-    select, input[type="number"], input[type="date"] {
-      width: 100%;
-      background: #0f172a;
-      border: 1px solid var(--border-color);
-      color: #fff;
-      padding: 6px 8px;
-      border-radius: 6px;
-      font-size: 12px;
-      outline: none;
-      box-sizing: border-box;
-      margin-bottom: 6px;
-    }
-    select:focus, input:focus { border-color: var(--accent-orange); }
-    .bbox-row { display: flex; gap: 6px; margin-bottom: 4px; }
-    button.tactical-btn {
-      width: 100%;
-      background: #1e293b;
-      border: 1px solid var(--border-color);
-      color: #fff;
-      padding: 7px 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-top: 4px;
-    }
-    button.tactical-btn:hover {
-      background: #334155;
-      border-color: var(--accent-orange);
-      color: var(--accent-orange);
-    }
-    button.primary-btn {
-      background: var(--accent-orange);
-      border-color: #ea580c;
-    }
-    button.primary-btn:hover { background: #ea580c; color: #fff; }
-    .stat-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; }
-    .stat-value { font-weight: 700; font-variant-numeric: tabular-nums; }
-    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 11px; margin-bottom: 4px; color: #cbd5e1; }
-    .color-dot { width: 9px; height: 9px; border-radius: 50%; }
-    #loading-overlay {
-      position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(5, 7, 13, 0.95);
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      z-index: 100;
-      transition: opacity 0.4s ease;
-    }
-    .spinner {
-      width: 40px; height: 40px;
-      border: 3px solid #1e293b;
-      border-top-color: var(--accent-orange);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-bottom: 12px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-  </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SO FIRE – Harmonized MODIS + VIIRS burning-activity calendar</title>
+  <meta name="description" content="Pick any area on Earth and see August 2026 fire activity as a burning calendar built from harmonized MODIS and VIIRS hotspots: anomalies, sensor-gap flags and CSV/PNG downloads." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%230b1020'/%3E%3Cpath d='M16 4c1 5 7 8 7 14a7 7 0 0 1-14 0c0-3 2-5 3-7 0 3 2 4 3 4 0-4-1-7 1-11z' fill='%23fb923c'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
+  <a class="skip" href="#analytics">Skip to analytics</a>
 
-  <div id="loading-overlay">
-    <div class="spinner"></div>
-    <div style="font-weight: 600; font-size: 13px; letter-spacing: 1px;">INITIALIZING SO FIRE ENGINE...</div>
-    <div id="loading-status" style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Loading index...</div>
-  </div>
-
-  <div id="globeViz"></div>
-
-  <!-- Top-Left: Spatial Region & Area History Selection -->
-  <div class="panel" id="top-left">
-    <h1>SO FIRE</h1>
-    <div class="subtitle">Cross-Platform Spatial Normalization & Fire History Audit</div>
-    
-    <div class="section-title">Geographic Focus</div>
-    <div class="control-group">
-      <select id="regionSelect">
-        <option value="global">🌍 Global View</option>
-        <option value="sea">🌏 Southeast Asia (Maritime Peatlands & Haze)</option>
-        <option value="sa">🌎 South America (Amazon Basin)</option>
-        <option value="africa">🌍 Sub-Saharan Africa</option>
-        <option value="custom">📐 Custom Bounding Box</option>
-      </select>
+  <header class="top">
+    <div class="brand">
+      <h1>SO FIRE</h1>
+      <p>Harmonized MODIS + VIIRS burning-activity calendar</p>
     </div>
+    <div class="period" aria-label="Data period">
+      <span class="period-main">August 2026</span>
+      <span class="period-sub" id="datasetBadge">loading…</span>
+    </div>
+    <button type="button" class="btn" id="methodsBtn">How it works &amp; limits</button>
+  </header>
 
-    <!-- Custom Bounding Box Inputs (Hidden by default) -->
-    <div id="customBboxContainer" style="display: none; background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); margin-top: 6px;">
-      <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">Custom Coordinates (Lat/Lng)</div>
-      <div class="bbox-row">
-        <input type="number" id="latMin" placeholder="Lat Min" value="-11" step="0.1">
-        <input type="number" id="latMax" placeholder="Lat Max" value="25" step="0.1">
+  <main>
+    <section class="left" aria-label="Area selection and map">
+      <div class="card aoi">
+        <div class="aoi-row">
+          <label for="preset">Area of interest</label>
+          <select id="preset"></select>
+          <button type="button" class="btn" id="drawBtn" aria-pressed="false">▭ Draw box</button>
+          <button type="button" class="btn" id="pickBtn" aria-pressed="false">⌖ Pick centre</button>
+          <label class="radius">radius <input id="cR" inputmode="decimal" autocomplete="off" value="50" aria-label="Radius in kilometres for point and radius areas" /> km</label>
+        </div>
+        <details id="coords">
+          <summary>Or enter coordinates</summary>
+          <div class="coord-forms">
+            <form id="boxForm" novalidate>
+              <fieldset>
+                <legend>Box (degrees, west &gt; east crosses the dateline)</legend>
+                <label>South <input id="bS" inputmode="decimal" autocomplete="off" /></label>
+                <label>North <input id="bN" inputmode="decimal" autocomplete="off" /></label>
+                <label>West <input id="bW" inputmode="decimal" autocomplete="off" /></label>
+                <label>East <input id="bE" inputmode="decimal" autocomplete="off" /></label>
+                <button class="btn primary" type="submit">Apply box</button>
+              </fieldset>
+            </form>
+            <form id="circleForm" novalidate>
+              <fieldset>
+                <legend>Point and radius (radius set above)</legend>
+                <label>Latitude <input id="cLat" inputmode="decimal" autocomplete="off" /></label>
+                <label>Longitude <input id="cLng" inputmode="decimal" autocomplete="off" /></label>
+                                <button class="btn primary" type="submit">Apply circle</button>
+              </fieldset>
+            </form>
+          </div>
+        </details>
+        <p class="msg" id="aoiMsg" role="status" aria-live="polite"></p>
       </div>
-      <div class="bbox-row">
-        <input type="number" id="lngMin" placeholder="Lng Min" value="92" step="0.1">
-        <input type="number" id="lngMax" placeholder="Lng Max" value="141" step="0.1">
+
+      <div class="mapwrap">
+        <div id="map" role="region" aria-label="Map of fire-active cells. Use the area controls above to choose an area."></div>
+
+        <div class="maptools">
+          <div class="seg" role="group" aria-label="Map colour">
+            <button type="button" data-color="density" aria-pressed="true">Density</button>
+            <button type="button" data-color="frp" aria-pressed="false">FRP (MW)</button>
+          </div>
+          <label class="check"><input type="checkbox" id="small" /> Include small VIIRS-only fires</label>
+          <div class="daychip" id="dayChip" hidden>
+            <span id="dayChipText"></span>
+            <button type="button" class="btn small" id="dayClear">Show all August</button>
+          </div>
+        </div>
+
+        <div class="maplegend" id="mapLegend" aria-live="off"></div>
+        <div class="progress" id="progress" hidden role="status" aria-live="polite">
+          <div class="progress-text" id="progressText">Loading…</div>
+          <div class="bar"><div class="bar-fill" id="progressBar"></div></div>
+          <button type="button" class="btn small" id="retryBtn" hidden>Try again</button>
+        </div>
       </div>
-      <button class="tactical-btn primary-btn" id="applyBboxBtn" style="font-size: 11px; padding: 4px;">Apply Bounding Box</button>
-    </div>
-  </div>
+    </section>
 
-  <!-- Top-Right: Date Range & Sensor Harmonization Filters -->
-  <div class="panel" id="top-right">
-    <div class="section-title">Temporal Date Range</div>
-    <div style="display: flex; gap: 6px; margin-bottom: 6px;">
-      <div style="flex:1;">
-        <label for="startDate">Start:</label>
-        <select id="startDate"></select>
+    <aside class="right" id="analytics" tabindex="-1" aria-label="Fire activity analytics">
+      <div class="title">
+        <h2 id="aoiTitle">–</h2>
+        <p id="aoiSub" class="muted"></p>
       </div>
-      <div style="flex:1;">
-        <label for="endDate">End:</label>
-        <select id="endDate"></select>
-      </div>
-    </div>
-    <button class="tactical-btn primary-btn" id="loadRangeBtn">⚡ Load Date Window</button>
 
-    <div class="section-title" style="margin-top: 12px;">Sensor Provenance Filters</div>
-    <div class="control-group">
-      <label><input type="checkbox" id="chkModis" checked> MODIS (1km Baseline)</label>
-      <label><input type="checkbox" id="chkNoaa20" checked> VIIRS NOAA-20 (375m)</label>
-      <label><input type="checkbox" id="chkNoaa21" checked> VIIRS NOAA-21 (375m)</label>
-      <label><input type="checkbox" id="chkSnpp" checked> VIIRS Suomi-NPP (375m)</label>
-    </div>
-  </div>
+      <div class="kpis" id="kpis" aria-live="polite"></div>
 
-  <!-- Bottom-Left: Rigorous Analytics & Fire History -->
-  <div class="panel" id="bottom-left">
-    <div class="section-title">Area History & Analytics</div>
-    <div id="metricsContent">
-      <div class="stat-row"><span>Active Window:</span> <span class="stat-value" id="statWindow">-</span></div>
-      <div class="stat-row"><span>Filtered Hotspots:</span> <span class="stat-value" id="statTotal" style="color: var(--accent-orange);">-</span></div>
-      <hr style="border:0; border-top:1px solid var(--border-color); margin: 6px 0;">
-      <div class="stat-row"><span>Total FRP:</span> <span class="stat-value" id="statTotalFrp">-</span></div>
-      <div class="stat-row"><span>Mean FRP:</span> <span class="stat-value" id="statMeanFrp">-</span></div>
-      <div class="stat-row"><span>Max FRP (Peak):</span> <span class="stat-value" id="statMaxFrp">-</span></div>
-      <hr style="border:0; border-top:1px solid var(--border-color); margin: 6px 0;">
-      <div class="stat-row"><span>MODIS Detections:</span> <span class="stat-value" id="statModis">-</span></div>
-      <div class="stat-row"><span>VIIRS NOAA-20:</span> <span class="stat-value" id="statN20">-</span></div>
-      <div class="stat-row"><span>VIIRS NOAA-21:</span> <span class="stat-value" id="statN21">-</span></div>
-      <div class="stat-row"><span>VIIRS Suomi-NPP:</span> <span class="stat-value" id="statSnpp">-</span></div>
-    </div>
-    <div style="font-size: 9px; color: var(--text-muted); margin-top: 8px; line-height: 1.2;">
-      *Note: Counts reflect multi-sensor spatial integration. Differences in pixel resolution (1km vs 375m) and overpass timing apply.
-    </div>
-    <button class="tactical-btn" id="exportCsvBtn" style="margin-top: 8px; background: #0284c7; border-color: #0369a1;">📥 Download Area CSV</button>
-  </div>
+      <section class="card" aria-labelledby="calH">
+        <div class="card-head">
+          <h3 id="calH">Burning calendar</h3>
+          <div class="tools">
+            <div class="seg" role="group" aria-label="Calendar measure">
+              <button type="button" data-metric="count" aria-pressed="true">Hotspots</button>
+              <button type="button" data-metric="frp" aria-pressed="false">FRP</button>
+            </div>
+            <div class="seg" role="group" aria-label="Calendar view">
+              <button type="button" data-view="abs" aria-pressed="true">Daily value</button>
+              <button type="button" data-view="anom" aria-pressed="false">vs mean</button>
+            </div>
+          </div>
+        </div>
+        <p class="muted hint" id="calHint">Each square is one day. Select a day to focus the map on it and compare it with the rest of the month.</p>
+        <div id="calendar"></div>
+        <div class="dayinfo" id="dayInfo" role="status" aria-live="polite"></div>
+        <div class="dl-row">
+          <span class="muted">Download calendar:</span>
+          <button type="button" class="btn small" data-dl="cal-png">PNG</button>
+          <button type="button" class="btn small" data-dl="cal-svg">SVG</button>
+        </div>
+      </section>
 
-  <!-- Bottom-Right: Legend -->
-  <div class="panel" id="bottom-right">
-    <div class="section-title">Sensor Provenance</div>
-    <div class="legend-item"><div class="color-dot" style="background: #ef4444;"></div> MODIS</div>
-    <div class="legend-item"><div class="color-dot" style="background: #fb923c;"></div> VIIRS NOAA-20 / 21 / SNPP</div>
-    <div style="font-size: 10px; color: var(--text-muted); margin-top: 6px; line-height: 1.3;">
-      Height & intensity scaled by Fire Radiative Power (MW).
-    </div>
-  </div>
+      <section class="card" aria-labelledby="barH">
+        <div class="card-head"><h3 id="barH">Daily activity vs. baseline</h3></div>
+        <div id="bars"></div>
+        <div class="dl-row">
+          <span class="muted">Download chart:</span>
+          <button type="button" class="btn small" data-dl="bars-png">PNG</button>
+          <button type="button" class="btn small" data-dl="bars-svg">SVG</button>
+        </div>
+      </section>
 
-  <script>
-    const loadingOverlay = document.getElementById('loading-overlay');
-    const loadingStatus = document.getElementById('loading-status');
-    const startDateSel = document.getElementById('startDate');
-    const endDateSel = document.getElementById('endDate');
-    const loadRangeBtn = document.getElementById('loadRangeBtn');
-    const regionSelect = document.getElementById('regionSelect');
-    const customBboxContainer = document.getElementById('customBboxContainer');
-    const applyBboxBtn = document.getElementById('applyBboxBtn');
+      <section class="card" aria-labelledby="harmH">
+        <div class="card-head"><h3 id="harmH">Harmonization check</h3></div>
+        <p class="muted" id="harmText"></p>
+        <div id="lines"></div>
+        <div class="table-wrap"><table class="mini" id="harmTable"></table></div>
+        <div class="dl-row">
+          <span class="muted">Download chart:</span>
+          <button type="button" class="btn small" data-dl="lines-png">PNG</button>
+          <button type="button" class="btn small" data-dl="lines-svg">SVG</button>
+        </div>
+      </section>
 
-    const latMinInput = document.getElementById('latMin');
-    const latMaxInput = document.getElementById('latMax');
-    const lngMinInput = document.getElementById('lngMin');
-    const lngMaxInput = document.getElementById('lngMax');
+      <section class="card" aria-labelledby="dlH">
+        <div class="card-head"><h3 id="dlH">Downloads for this search</h3></div>
+        <p class="muted" id="dlText"></p>
+        <div class="dl-grid">
+          <button type="button" class="btn primary" id="csvHot">⬇ Hotspots CSV</button>
+          <button type="button" class="btn" id="csvDaily">⬇ Daily summary CSV</button>
+          <button type="button" class="btn" id="copyLink">🔗 Copy link to this view</button>
+        </div>
+        <p class="msg" id="dlMsg" role="status" aria-live="polite"></p>
+      </section>
 
-    const chkModis = document.getElementById('chkModis');
-    const chkNoaa20 = document.getElementById('chkNoaa20');
-    const chkNoaa21 = document.getElementById('chkNoaa21');
-    const chkSnpp = document.getElementById('chkSnpp');
+      <details class="card" id="dataTable">
+        <summary>Daily numbers as a table</summary>
+        <div class="table-wrap"><table class="mini" id="dailyTable"></table></div>
+      </details>
 
-    const statWindow = document.getElementById('statWindow');
-    const statTotal = document.getElementById('statTotal');
-    const statTotalFrp = document.getElementById('statTotalFrp');
-    const statMeanFrp = document.getElementById('statMeanFrp');
-    const statMaxFrp = document.getElementById('statMaxFrp');
-    const statModis = document.getElementById('statModis');
-    const statN20 = document.getElementById('statN20');
-    const statN21 = document.getElementById('statN21');
-    const statSnpp = document.getElementById('statSnpp');
+      <details class="card" id="methods">
+        <summary>How it works &amp; limits</summary>
+        <div class="prose" id="methodsBody"></div>
+      </details>
 
-    let allDates = [];
-    let rawLoadedPoints = [];
-    let customBounds = null;
+      <footer class="foot">
+        SO FIRE · MODIS and VIIRS active-fire detections (NASA FIRMS products) · basemap © OpenStreetMap contributors © CARTO · outlines: Natural Earth.
+        Hotspots are satellite heat detections, not counts of separate fires and not burned area.
+      </footer>
+    </aside>
+  </main>
 
-    // Initialize Globe
-    const globe = Globe()(document.getElementById('globeViz'))
-      .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
-      .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
-      .pointLat('lat')
-      .pointLng('lng')
-      .pointColor(d => d.sensor === 'MODIS' ? '#ef4444' : '#fb923c')
-      .pointAltitude(d => Math.min((d.frp || 10) / 400, 0.22))
-      .pointRadius(d => d.sensor === 'MODIS' ? 0.35 : 0.2);
+  <div id="tip" class="tip" role="tooltip" hidden></div>
+  <div class="sr-only" id="sr" role="status" aria-live="polite"></div>
 
-    // Robust Sensor Normalization (Problem A Fix)
-    function normalizeSensor(s) {
-      if (!s) return 'MODIS';
-      const upper = s.toUpperCase();
-      if (upper.includes('MODIS')) return 'MODIS';
-      if (upper.includes('NOAA20') || upper.includes('J1V')) return 'VIIRS_NOAA20';
-      if (upper.includes('NOAA21') || upper.includes('J2V')) return 'VIIRS_NOAA21';
-      if (upper.includes('SNPP') || upper.includes('SUOMI') || upper.includes('SV')) return 'VIIRS_SuomiNPP';
-      return 'VIIRS_SuomiNPP'; // Default catch for non-MODIS VIIRS
-    }
-
-    function getActiveSensors() {
-      const active = [];
-      if (chkModis.checked) active.push('MODIS');
-      if (chkNoaa20.checked) active.push('VIIRS_NOAA20');
-      if (chkNoaa21.checked) active.push('VIIRS_NOAA21');
-      if (chkSnpp.checked) active.push('VIIRS_SuomiNPP');
-      return active;
-    }
-
-    function getRegionBounds() {
-      const reg = regionSelect.value;
-      if (reg === 'sea') return { latMin: -11, latMax: 25, lngMin: 92, lngMax: 141 };
-      if (reg === 'sa') return { latMin: -35, latMax: 12, lngMin: -82, lngMax: -34 };
-      if (reg === 'africa') return { latMin: -35, latMax: 18, lngMin: -18, lngMax: 52 };
-      if (reg === 'custom') return customBounds;
-      return null;
-    }
-
-    function processAndRender() {
-      const activeSensors = getActiveSensors();
-      const bounds = getRegionBounds();
-
-      const filtered = rawLoadedPoints.filter(p => {
-        if (!activeSensors.includes(p.sensor)) return false;
-        if (bounds) {
-          if (p.lat < bounds.latMin || p.lat > bounds.latMax || p.lng < bounds.lngMin || p.lng > bounds.lngMax) {
-            return false;
-          }
-        }
-        return true;
-      });
-
-      globe.pointsData(filtered);
-
-      // Comprehensive Analytics Calculation
-      let mCount = 0, n20Count = 0, n21Count = 0, snppCount = 0;
-      let totalFrp = 0, maxFrp = 0;
-
-      filtered.forEach(p => {
-        const frp = Number(p.frp) || 0;
-        totalFrp += frp;
-        if (frp > maxFrp) maxFrp = frp;
-
-        if (p.sensor === 'MODIS') mCount++;
-        else if (p.sensor === 'VIIRS_NOAA20') n20Count++;
-        else if (p.sensor === 'VIIRS_NOAA21') n21Count++;
-        else if (p.sensor === 'VIIRS_SuomiNPP') snppCount++;
-      });
-
-      const meanFrp = filtered.length > 0 ? (totalFrp / filtered.length).toFixed(1) : 0;
-
-      statTotal.textContent = filtered.length.toLocaleString();
-      statTotalFrp.textContent = totalFrp.toLocaleString(undefined, {maximumFractionDigits: 0}) + " MW";
-      statMeanFrp.textContent = meanFrp + " MW";
-      statMaxFrp.textContent = maxFrp.toLocaleString() + " MW";
-      
-      statModis.textContent = mCount.toLocaleString();
-      statN20.textContent = n20Count.toLocaleString();
-      statN21.textContent = n21Count.toLocaleString();
-      statSnpp.textContent = snppCount.toLocaleString();
-    }
-
-    // Memory-Optimized Sequential Batch Loader (Problem B Fix)
-    async function loadDateRange() {
-      const start = startDateSel.value;
-      const end = endDateSel.value;
-      
-      const startIndex = allDates.indexOf(start);
-      const endIndex = allDates.indexOf(end);
-
-      if (startIndex === -1 || endIndex === -1 || startIndex > endIndex) {
-        alert("Invalid date range selected.");
-        return;
-      }
-
-      const targetDates = allDates.slice(startIndex, endIndex + 1);
-      statWindow.textContent = `${start} to ${end}`;
-      
-      loadingStatus.textContent = `Loading ${targetDates.length} sharded archives sequentially...`;
-      loadingOverlay.style.display = 'flex';
-      loadingOverlay.style.opacity = '1';
-
-      try {
-        let combinedPoints = [];
-        
-        // Sequential fetch loop to protect browser memory
-        for (let i = 0; i < targetDates.length; i++) {
-          const dateStr = targetDates[i];
-          loadingStatus.textContent = `Loading archive ${i + 1} of ${targetDates.length} (${dateStr})...`;
-          
-          try {
-            const res = await fetch(`${dateStr}.json.gz`);
-            if (!res.ok) continue;
-            
-            const resClone = res.clone();
-            let text = "";
-            try {
-              const ds = new DecompressionStream('gzip');
-              const decompressedStream = res.body.pipeThrough(ds);
-              text = await new Response(decompressedStream).text();
-            } catch (streamErr) {
-              text = await resClone.text();
-            }
-            
-            const parsed = JSON.parse(text);
-            // Normalize sensor names on ingestion (Problem A Fix)
-            parsed.forEach(p => {
-              p.sensor = normalizeSensor(p.sensor);
-            });
-            combinedPoints.push(...parsed);
-          } catch (err) {
-            console.warn(`Skipped ${dateStr}:`, err);
-          }
-        }
-
-        rawLoadedPoints = combinedPoints;
-        processAndRender();
-
-        // Adjust camera focus
-        const reg = regionSelect.value;
-        if (reg === 'sea') globe.pointOfView({ lat: 1.35, lng: 110.5, altitude: 1.6 }, 1000);
-        else if (reg === 'sa') globe.pointOfView({ lat: -10.0, lng: -60.0, altitude: 2.0 }, 1000);
-        else if (reg === 'africa') globe.pointOfView({ lat: 0.0, lng: 20.0, altitude: 2.2 }, 1000);
-        else globe.pointOfView({ lat: 15.0, lng: 90.0, altitude: 2.2 }, 1000);
-
-      } catch (err) {
-        console.error("Archive load error:", err);
-        loadingStatus.textContent = "Error loading archives.";
-      } finally {
-        loadingOverlay.style.opacity = '0';
-        setTimeout(() => loadingOverlay.style.display = 'none', 300);
-      }
-    }
-
-    // Initialize Master Index
-    fetch('dates.json')
-      .then(res => res.json())
-      .then(data => {
-        allDates = Array.isArray(data) ? data.sort() : Object.keys(data).sort();
-        if (allDates.length === 0) throw new Error("No dates found");
-
-        startDateSel.innerHTML = '';
-        endDateSel.innerHTML = '';
-        allDates.forEach(d => {
-          startDateSel.add(new Option(d, d));
-          endDateSel.add(new Option(d, d));
-        });
-
-        startDateSel.value = allDates[0];
-        endDateSel.value = allDates[allDates.length - 1];
-
-        loadDateRange();
-      })
-      .catch(err => {
-        console.error(err);
-        loadingStatus.textContent = "Failed to load dates.json index.";
-      });
-
-    // Event Listeners
-    loadRangeBtn.addEventListener('click', loadDateRange);
-    
-    regionSelect.addEventListener('change', () => {
-      if (regionSelect.value === 'custom') {
-        customBboxContainer.style.display = 'block';
-      } else {
-        customBboxContainer.style.display = 'none';
-        processAndRender();
-        if (regionSelect.value === 'sea') globe.pointOfView({ lat: 1.35, lng: 110.5, altitude: 1.6 }, 1000);
-        else if (regionSelect.value === 'sa') globe.pointOfView({ lat: -10.0, lng: -60.0, altitude: 2.0 }, 1000);
-        else if (regionSelect.value === 'africa') globe.pointOfView({ lat: 0.0, lng: 20.0, altitude: 2.2 }, 1000);
-        else globe.pointOfView({ lat: 15.0, lng: 90.0, altitude: 2.2 }, 1000);
-      }
-    });
-
-    applyBboxBtn.addEventListener('click', () => {
-      customBounds = {
-        latMin: parseFloat(latMinInput.value) || -90,
-        latMax: parseFloat(latMaxInput.value) || 90,
-        lngMin: parseFloat(lngMinInput.value) || -180,
-        lngMax: parseFloat(lngMaxInput.value) || 180
-      };
-      processAndRender();
-    });
-
-    [chkModis, chkNoaa20, chkNoaa21, chkSnpp].forEach(chk => {
-      chk.addEventListener('change', processAndRender);
-    });
-
-    document.getElementById('exportCsvBtn').addEventListener('click', () => {
-      if (rawLoadedPoints.length === 0) { alert("No data loaded."); return; }
-      const activeSensors = getActiveSensors();
-      const bounds = getRegionBounds();
-      const exportData = rawLoadedPoints.filter(p => {
-        if (!activeSensors.includes(p.sensor)) return false;
-        if (bounds && (p.lat < bounds.latMin || p.lat > bounds.latMax || p.lng < bounds.lngMin || p.lng > bounds.lngMax)) return false;
-        return true;
-      });
-
-      let csv = "data:text/csv;charset=utf-8,date,latitude,longitude,frp,sensor\n" 
-        + exportData.map(e => `${e.date || ''},${e.lat},${e.lng},${e.frp || 0},${e.sensor}`).join("\n");
-
-      const link = document.createElement("a");
-      link.setAttribute("href", encodeURI(csv));
-      link.setAttribute("download", `so_fire_history_${startDateSel.value}_to_${endDateSel.value}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    });
-  </script>
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <script type="module" src="js/main.js"></script>
+  <noscript><p style="padding:24px">SO FIRE needs JavaScript to draw the map and charts.</p></noscript>
 </body>
 </html>
