@@ -25,7 +25,6 @@
       width: 100vw;
       height: 100vh;
     }
-    /* UI Panels */
     .panel {
       position: absolute;
       background: var(--panel-bg);
@@ -36,26 +35,10 @@
       z-index: 10;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
     }
-    #top-left {
-      top: 20px;
-      left: 20px;
-      width: 280px;
-    }
-    #top-right {
-      top: 20px;
-      right: 20px;
-      width: 300px;
-    }
-    #bottom-left {
-      bottom: 20px;
-      left: 20px;
-      width: 260px;
-    }
-    #bottom-right {
-      bottom: 20px;
-      right: 20px;
-      width: 240px;
-    }
+    #top-left { top: 20px; left: 20px; width: 280px; }
+    #top-right { top: 20px; right: 20px; width: 300px; }
+    #bottom-left { bottom: 20px; left: 20px; width: 260px; }
+    #bottom-right { bottom: 20px; right: 20px; width: 240px; }
     h1 {
       margin: 0 0 4px 0;
       font-size: 18px;
@@ -79,13 +62,8 @@
       border-bottom: 1px solid var(--border-color);
       padding-bottom: 4px;
     }
-    /* Controls & Inputs */
-    .control-group {
-      margin-bottom: 12px;
-    }
-    .control-group:last-child {
-      margin-bottom: 0;
-    }
+    .control-group { margin-bottom: 12px; }
+    .control-group:last-child { margin-bottom: 0; }
     label {
       font-size: 12px;
       display: flex;
@@ -97,8 +75,7 @@
     }
     input[type="checkbox"] {
       accent-color: var(--accent-orange);
-      width: 14px;
-      height: 14px;
+      width: 14px; height: 14px;
       cursor: pointer;
     }
     select {
@@ -112,14 +89,8 @@
       outline: none;
       box-sizing: border-box;
     }
-    select:focus {
-      border-color: var(--accent-orange);
-    }
-    .btn-row {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
+    select:focus { border-color: var(--accent-orange); }
+    .btn-row { display: flex; gap: 8px; margin-top: 8px; }
     button.tactical-btn {
       flex: 1;
       background: #1e293b;
@@ -137,38 +108,14 @@
       border-color: var(--accent-orange);
       color: var(--accent-orange);
     }
-    /* Stats & Legend */
-    .stat-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-      margin-bottom: 6px;
-    }
-    .stat-value {
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-    }
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      margin-bottom: 6px;
-      color: #cbd5e1;
-    }
-    .color-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-    }
+    .stat-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+    .stat-value { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 6px; color: #cbd5e1; }
+    .color-dot { width: 10px; height: 10px; border-radius: 50%; }
     #loading-overlay {
-      position: absolute;
-      top: 0; left: 0; width: 100vw; height: 100vh;
+      position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(5, 7, 13, 0.92);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
       z-index: 100;
       transition: opacity 0.4s ease;
     }
@@ -188,7 +135,7 @@
   <div id="loading-overlay">
     <div class="spinner"></div>
     <div style="font-weight: 600; font-size: 14px; letter-spacing: 1px;">INITIALIZING SO FIRE INTEL...</div>
-    <div id="loading-status" style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Loading dataset...</div>
+    <div id="loading-status" style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Loading index...</div>
   </div>
 
   <div id="globeViz"></div>
@@ -199,7 +146,7 @@
     <div class="subtitle">Global Harmonized Fire & Burn Activity Intelligence Platform (MODIS & VIIRS)</div>
     <div style="font-size: 11px; color: #94a3b8; border-top: 1px solid var(--border-color); margin-top: 8px; padding-top: 8px;">
       <b>Status:</b> <span style="color: #22c55e;">Operational</span><br>
-      <b>Dataset Window:</b> August 2026
+      <b>Architecture:</b> Daily Sharded `.json.gz`
     </div>
   </div>
 
@@ -267,9 +214,9 @@
     const statNoaa21 = document.getElementById('statNoaa21');
     const statSnpp = document.getElementById('statSnpp');
 
-    let timelineData = {};
     let dates = [];
     let currentIndex = 0;
+    let currentDayPoints = []; // Cache for current date points
 
     // Initialize 3D Globe with tactical styling
     const globe = Globe()(document.getElementById('globeViz'))
@@ -290,22 +237,14 @@
       return active;
     }
 
-    function renderCurrentDate() {
-      if (dates.length === 0) return;
-      const currentDate = dates[currentIndex];
-      dateSelect.value = currentDate;
-      statDate.textContent = currentDate;
-
-      const rawPoints = timelineData[currentDate] || [];
+    function updateGlobeVisualization() {
       const activeSensors = getActiveSensors();
-
-      // Filter points based on sensor checkboxes
-      const filteredPoints = rawPoints.filter(p => activeSensors.includes(p.sensor));
+      const filteredPoints = currentDayPoints.filter(p => activeSensors.includes(p.sensor));
       globe.pointsData(filteredPoints);
 
       // Compute stats for current date
       let mCount = 0, n20Count = 0, n21Count = 0, snppCount = 0;
-      rawPoints.forEach(p => {
+      currentDayPoints.forEach(p => {
         if (p.sensor === 'MODIS') mCount++;
         else if (p.sensor === 'VIIRS-NOAA20') n20Count++;
         else if (p.sensor === 'VIIRS-NOAA21') n21Count++;
@@ -319,25 +258,52 @@
       statSnpp.textContent = snppCount.toLocaleString();
     }
 
-    // Load hotspots.json data
-    loadingStatus.textContent = "Fetching hotspots.json...";
-    fetch('hotspots.json')
+    async function loadDateData(dateStr) {
+      loadingStatus.textContent = `Loading data for ${dateStr}...`;
+      loadingOverlay.style.display = 'flex';
+      loadingOverlay.style.opacity = '1';
+
+      try {
+        const response = await fetch(`${dateStr}.json.gz`);
+        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+        
+        // Decompress .json.gz stream natively in browser
+        const ds = new DecompressionStream('gzip');
+        const decompressedStream = response.body.pipeThrough(ds);
+        const text = await new Response(decompressedStream).text();
+        
+        currentDayPoints = JSON.parse(text);
+        dateSelect.value = dateStr;
+        statDate.textContent = dateStr;
+
+        updateGlobeVisualization();
+      } catch (err) {
+        console.error(err);
+        alert(`Failed to load data for ${dateStr}. Ensure ${dateStr}.json.gz exists.`);
+      } finally {
+        loadingOverlay.style.opacity = '0';
+        setTimeout(() => loadingOverlay.style.display = 'none', 300);
+      }
+    }
+
+    // 1. Load dates.json master index on startup
+    fetch('dates.json')
       .then(res => {
         if (!res.ok) throw new Error("HTTP error " + res.status);
         return res.json();
       })
       .then(data => {
-        timelineData = data;
-        dates = Object.keys(data).sort();
+        // Support array of strings or object format
+        dates = Array.isArray(data) ? data.sort() : Object.keys(data).sort();
 
         if (dates.length === 0) {
-          loadingStatus.textContent = "Error: No date entries found in hotspots.json";
+          loadingStatus.textContent = "Error: No dates found in dates.json";
           return;
         }
 
         // Populate date dropdown selector
         dateSelect.innerHTML = '';
-        dates.forEach((d) => {
+        dates.forEach(d => {
           const opt = document.createElement('option');
           opt.value = d;
           opt.textContent = d;
@@ -345,18 +311,14 @@
         });
 
         currentIndex = 0;
-        renderCurrentDate();
+        loadDateData(dates[currentIndex]);
 
         // Center globe over Southeast Asia / Global view on initial load
         globe.pointOfView({ lat: 10.0, lng: 105.0, altitude: 2.1 }, 1000);
-
-        // Hide loading overlay smoothly
-        loadingOverlay.style.opacity = '0';
-        setTimeout(() => loadingOverlay.style.display = 'none', 400);
       })
       .catch(err => {
         console.error(err);
-        loadingStatus.textContent = "Failed to load hotspots.json. Ensure file is in root directory.";
+        loadingStatus.textContent = "Failed to load dates.json index.";
       });
 
     // Event Listeners for Date Selection & Navigation
@@ -365,27 +327,27 @@
       const idx = dates.indexOf(selectedDate);
       if (idx !== -1) {
         currentIndex = idx;
-        renderCurrentDate();
+        loadDateData(dates[currentIndex]);
       }
     });
 
     prevDayBtn.addEventListener('click', () => {
       if (currentIndex > 0) {
         currentIndex--;
-        renderCurrentDate();
+        loadDateData(dates[currentIndex]);
       }
     });
 
     nextDayBtn.addEventListener('click', () => {
       if (currentIndex < dates.length - 1) {
         currentIndex++;
-        renderCurrentDate();
+        loadDateData(dates[currentIndex]);
       }
     });
 
     // Event Listeners for Sensor Toggles
     [chkModis, chkNoaa20, chkNoaa21, chkSnpp].forEach(chk => {
-      chk.addEventListener('change', renderCurrentDate);
+      chk.addEventListener('change', updateGlobeVisualization);
     });
   </script>
 </body>
