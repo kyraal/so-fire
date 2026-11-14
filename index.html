@@ -229,7 +229,7 @@
     const statRatio = document.getElementById('statRatio');
 
     let allDates = [];
-    let rawLoadedPoints = []; // Stores combined points for selected date range
+    let rawLoadedPoints = [];
 
     // Initialize Globe
     const globe = Globe()(document.getElementById('globeViz'))
@@ -255,14 +255,13 @@
       if (reg === 'sea') return { latMin: -11, latMax: 25, lngMin: 92, lngMax: 141 };
       if (reg === 'sa') return { latMin: -35, latMax: 12, lngMin: -82, lngMax: -34 };
       if (reg === 'africa') return { latMin: -35, latMax: 18, lngMin: -18, lngMax: 52 };
-      return null; // Global
+      return null;
     }
 
     function processAndRender() {
       const activeSensors = getActiveSensors();
       const bounds = getRegionBounds();
 
-      // 1. Filter by Sensors and Spatial Region
       const filtered = rawLoadedPoints.filter(p => {
         if (!activeSensors.includes(p.sensor)) return false;
         if (bounds) {
@@ -275,7 +274,6 @@
 
       globe.pointsData(filtered);
 
-      // 2. Calculate Analytics
       let mCount = 0, vCount = 0, totalFrp = 0;
       filtered.forEach(p => {
         if (p.sensor === 'MODIS') mCount++;
@@ -305,21 +303,33 @@
       const targetDates = allDates.slice(startIndex, endIndex + 1);
       statWindow.textContent = `${start} to ${end} (${targetDates.length} days)`;
       
-      loadingStatus.textContent = `Fetching ${targetDates.length} daily sharded archives...`;
+      loadingStatus.textContent = `Fetching ${targetDates.length} archive files...`;
       loadingOverlay.style.display = 'flex';
       loadingOverlay.style.opacity = '1';
 
       try {
         let combinedPoints = [];
         
-        // Fetch all selected gzipped daily files in parallel
         const promises = targetDates.map(async (dateStr) => {
-          const res = await fetch(`${dateStr}.json.gz`);
-          if (!res.ok) return [];
-          const ds = new DecompressionStream('gzip');
-          const decompressedStream = res.body.pipeThrough(ds);
-          const text = await new Response(decompressedStream).text();
-          return JSON.parse(text);
+          try {
+            const res = await fetch(`${dateStr}.json.gz`);
+            if (!res.ok) return [];
+            
+            // Attempt native browser stream decompression
+            try {
+              const ds = new DecompressionStream('gzip');
+              const decompressedStream = res.body.pipeThrough(ds);
+              const text = await new Response(decompressedStream).text();
+              return JSON.parse(text);
+            } catch (streamErr) {
+              // Fallback if browser auto-decompressed or stream has quirk
+              const text = await res.text();
+              return JSON.parse(text);
+            }
+          } catch (err) {
+            console.warn(`Failed to load ${dateStr}:`, err);
+            return [];
+          }
         });
 
         const results = await Promise.all(promises);
@@ -328,7 +338,6 @@
         rawLoadedPoints = combinedPoints;
         processAndRender();
 
-        // Adjust camera view if Southeast Asia is selected
         if (regionSelect.value === 'sea') {
           globe.pointOfView({ lat: 1.35, lng: 110.5, altitude: 1.6 }, 1000);
         } else if (regionSelect.value === 'sa') {
@@ -346,7 +355,6 @@
       }
     }
 
-    // Initialize on startup by fetching dates.json
     fetch('dates.json')
       .then(res => res.json())
       .then(data => {
@@ -360,7 +368,6 @@
           endDateSel.add(new Option(d, d));
         });
 
-        // Default to full August range
         startDateSel.value = allDates[0];
         endDateSel.value = allDates[allDates.length - 1];
 
@@ -371,7 +378,6 @@
         loadingStatus.textContent = "Failed to load dates.json index.";
       });
 
-    // Event Listeners
     loadRangeBtn.addEventListener('click', loadDateRange);
     regionSelect.addEventListener('change', () => {
       processAndRender();
@@ -385,7 +391,6 @@
       chk.addEventListener('change', processAndRender);
     });
 
-    // CSV Export
     document.getElementById('exportCsvBtn').addEventListener('click', () => {
       if (rawLoadedPoints.length === 0) { alert("No data loaded."); return; }
       const activeSensors = getActiveSensors();
