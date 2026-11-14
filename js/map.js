@@ -19,13 +19,17 @@ export function createMap(el, hooks) {
   map.getPane('labels').style.pointerEvents = 'none';
   map.setView([8, 110], 4);
 
-  // Basemap (needs internet). Outlines below are bundled so the map is never blank.
+  // Basemap (needs internet with CARTO API key). Outlines below are bundled so the map is never blank.
   let tileErrors = 0;
+  const apiKey = 'cb1_590t_1_c65c74a343405e818cd55dc7';
   const attribution = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a> · outlines: Natural Earth';
-  const base = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 12, noWrap: true, attribution });
+  
+  const base = L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png?key=${apiKey}`, { subdomains: 'abcd', maxZoom: 12, noWrap: true, attribution });
   base.on('tileerror', () => { if (++tileErrors === 3) hooks.onBasemapError?.(); });
   base.addTo(map);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 12, noWrap: true, pane: 'labels' }).addTo(map);
+  
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png?key=${apiKey}`, { subdomains: 'abcd', maxZoom: 12, noWrap: true, pane: 'labels' }).addTo(map);
+  
   fetch('data/world.geojson').then((r) => r.json()).then((g) => {
     L.geoJSON(g, { pane: 'outline', interactive: false, style: { color: '#64748b', weight: 0.8, opacity: 0.85, fill: false } }).addTo(map);
   }).catch(() => {});
