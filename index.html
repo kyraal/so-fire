@@ -315,19 +315,21 @@
             const res = await fetch(`${dateStr}.json.gz`);
             if (!res.ok) return [];
             
-            // Attempt native browser stream decompression
+            // Clone the response so we can safely fallback if decompression fails
+            const resClone = res.clone();
+            
             try {
               const ds = new DecompressionStream('gzip');
               const decompressedStream = res.body.pipeThrough(ds);
               const text = await new Response(decompressedStream).text();
               return JSON.parse(text);
             } catch (streamErr) {
-              // Fallback if browser auto-decompressed or stream has quirk
-              const text = await res.text();
+              // Fallback to reading response normally if it's plain text or stream locks
+              const text = await resClone.text();
               return JSON.parse(text);
             }
           } catch (err) {
-            console.warn(`Failed to load ${dateStr}:`, err);
+            console.warn(`Skipped ${dateStr}:`, err);
             return [];
           }
         });
@@ -347,8 +349,8 @@
         }
 
       } catch (err) {
-        console.error(err);
-        alert("Error loading compressed archive files.");
+        console.error("Archive load error:", err);
+        loadingStatus.textContent = "Error loading files. Check browser console.";
       } finally {
         loadingOverlay.style.opacity = '0';
         setTimeout(() => loadingOverlay.style.display = 'none', 300);
