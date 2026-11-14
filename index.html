@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080b10">
+  <title>SO FIRE — Satellite Fire Activity Explorer</title>
+  <script src="https://unpkg.com/globe.gl"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080b10; --panel: rgba(15, 21, 30, .92);
+      --line: rgba(148, 163, 184, .2); --muted: #94a3b8;
+      --orange: #fb923c; --red: #f05252; --cyan: #38bdf8;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: #f8fafc;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; }
+    #globeViz { position: fixed; inset: 0; }
+    .topbar { position: fixed; z-index: 5; top: 0; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 26px; pointer-events: none;
+      background: linear-gradient(180deg, rgba(5,8,13,.88), transparent); }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .brand-mark { width:38px; height:38px; display:grid; place-items:center;
+      border-radius:12px; background:linear-gradient(135deg,#fb923c,#dc2626);
+      font-size:21px; box-shadow:0 8px 30px #f9731633; }
+    .brand-name { font-size:20px; font-weight:850; letter-spacing:.12em; }
+    .brand-sub { color:var(--muted); font-size:10px; letter-spacing:.13em; text-transform:uppercase; margin-top:2px; }
+    .top-note { color:#cbd5e1; font-size:12px; border:1px solid var(--line);
+      background:#0b111bc9; padding:8px 12px; border-radius:999px; }
+    .panel { position:fixed; z-index:4; background:var(--panel);
+      border:1px solid var(--line); backdrop-filter:blur(16px);
+      box-shadow:0 16px 50px #0005; border-radius:16px; }
+    .stats { top:88px; left:24px; width:min(310px,calc(100vw - 48px)); padding:18px; }
+    .eyebrow { color:var(--orange); text-transform:uppercase; font-size:10px;
+      font-weight:800; letter-spacing:.16em; }
+    h1 { font-size:17px; margin:7px 0 3px; }
+    .sub { color:var(--muted); font-size:11px; line-height:1.5; }
+    .metric-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:17px; }
+    .metric { padding:11px; background:#ffffff08; border:1px solid #ffffff0d; border-radius:11px; }
+    .metric-label { color:var(--muted); font-size:10px; }
+    .metric-value { font-size:21px; font-weight:800; margin-top:4px; font-variant-numeric:tabular-nums; }
+    .legend { display:flex; gap:14px; margin-top:15px; color:#cbd5e1; font-size:11px; flex-wrap:wrap; }
+    .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; }
+    .notice { margin-top:14px; padding:10px; border-radius:9px; background:#f9731612;
+      color:#fed7aa; font-size:11px; line-height:1.45; }
+    .timeline { left:50%; transform:translateX(-50%); bottom:24px;
+      width:min(850px,calc(100vw - 36px)); padding:15px 18px; }
+    .timeline-head { display:flex; justify-content:space-between; align-items:center;
+      gap:12px; margin-bottom:12px; }
+    .timeline-title { font-size:12px; font-weight:750; }
+    #dateLabel { color:#fff; font-size:12px; font-weight:750; font-variant-numeric:tabular-nums; }
+    .controls { display:flex; align-items:center; gap:12px; }
+    button, select { font:inherit; }
+    button { border:0; cursor:pointer; border-radius:9px; padding:10px 14px;
+      background:var(--orange); color:#1c1007; font-weight:800; }
+    button:disabled { opacity:.42; cursor:not-allowed; }
+    button.secondary { background:#1e293b; color:#e2e8f0; border:1px solid var(--line); }
+    input[type=range] { flex:1; min-width:50px; accent-color:var(--orange); cursor:pointer; }
+    .timeline-foot { display:flex; justify-content:space-between; gap:12px;
+      color:var(--muted); font-size:10px; margin-top:8px; }
+    .export { position:fixed; z-index:5; right:24px; top:94px; }
+    .status { position:fixed; z-index:6; left:50%; top:50%; transform:translate(-50%,-50%);
+      max-width: min(440px, calc(100vw - 36px)); padding:16px 20px; text-align:center;
+      border-radius:12px; background:#0b111bee; border:1px solid var(--line);
+      color:#e2e8f0; font-size:13px; line-height:1.5; }
+    .hidden { display:none; }
+    @media(max-width:650px) {
+      .topbar { padding:14px 16px; } .top-note { display:none; }
+      .stats { top:76px; left:12px; width:220px; padding:13px; }
+      .metric-grid { gap:6px; margin-top:10px; }
+      .metric { padding:8px; } .metric-value { font-size:17px; }
+      .export { right:12px; top:82px; padding:8px 10px; font-size:11px; }
+      .timeline { bottom:12px; padding:13px; }
+      .timeline-head { margin-bottom:9px; }
+      .controls { gap:8px; } button { padding:9px 11px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="globeViz"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">🔥</div>
+      <div><div class="brand-name">SO FIRE</div><div class="brand-sub">Satellite fire activity explorer</div></div>
+    </div>
+    <div class="top-note">NASA FIRMS · MODIS + VIIRS</div>
+  </header>
+
+  <section class="panel stats" aria-live="polite">
+    <div class="eyebrow">Global fire activity</div>
+    <h1>Hotspot observations</h1>
+    <div class="sub">Satellite-detected active fire and thermal anomalies. Select a date to load its observations.</div>
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-label">Total detections</div><div class="metric-value" id="totalCount">—</div></div>
+      <div class="metric"><div class="metric-label">Selected date</div><div class="metric-value" id="selectedDate" style="font-size:14px">—</div></div>
+      <div class="metric"><div class="metric-label">VIIRS detections</div><div class="metric-value" id="viirsCount" style="color:var(--orange)">—</div></div>
+      <div class="metric"><div class="metric-label">MODIS detections</div><div class="metric-value" id="modisCount" style="color:var(--red)">—</div></div>
+    </div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--orange)"></i>VIIRS</span>
+      <span><i class="dot" style="background:var(--red)"></i>MODIS</span>
+      <span>Point height = FRP</span>
+    </div>
+    <div class="notice" id="dataNotice">Daily satellite data loads when you select a date.</div>
+  </section>
+
+  <button class="export" id="exportBtn" disabled>↓ Export CSV</button>
+
+  <section class="panel timeline">
+    <div class="timeline-head">
+      <div class="timeline-title">TIME EXPLORER</div>
+      <div id="dateLabel">Loading date index…</div>
+    </div>
+    <div class="controls">
+      <button id="playBtn" disabled>▶ Play</button>
+      <input id="dateSlider" type="range" min="0" max="0" value="0" disabled aria-label="Select observation date">
+      <button id="speedBtn" class="secondary" title="Change playback speed" disabled>1×</button>
+    </div>
+    <div class="timeline-foot"><span id="startDate">—</span><span id="stepLabel">Loading date index</span><span id="endDate">—</span></div>
+  </section>
+
+  <div class="status" id="status">Loading SO FIRE data…</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const slider = $('dateSlider');
+  const playBtn = $('playBtn');
+  const speedBtn = $('speedBtn');
+  const statusBox = $('status');
+
+  let dates = [];
+  let currentIndex = 0;
+  let currentPoints = [];
+  let playbackTimer = null;
+  let speedIndex = 0;
+  let requestId = 0;
+
+  // Keep at most two days in memory to avoid retaining the full month.
+  const dayCache = new Map();
+  const speeds = [1200, 700, 350];
+  const speedLabels = ['1×', '1.7×', '3.4×'];
+
+  const globe = Globe()(document.getElementById('globeViz'))
+    .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg')
+    .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
+    .showAtmosphere(true)
+    .atmosphereColor('#f97316')
+    .atmosphereAltitude(0.16)
+    .pointLat('lat')
+    .pointLng('lng')
+    .pointColor(d =>
+      String(d.sensor || '').toUpperCase().includes('VIIRS') ? '#fb923c' : '#ef4444'
+    )
+    .pointAltitude(d =>
+      Math.min(Math.max(Number(d.frp || 0) / 500, 0.003), 0.12)
+    )
+    .pointRadius(d =>
+      String(d.sensor || '').toUpperCase().includes('VIIRS') ? 0.16 : 0.25
+    )
+    .pointsMerge(true)
+    .pointResolution(6);
+
+  function sensorCounts(points) {
+    let viirs = 0;
+    let modis = 0;
+
+    for (const point of points) {
+      const sensor = String(point.sensor || '').toUpperCase();
+      if (sensor.includes('VIIRS')) viirs++;
+      else if (sensor.includes('MODIS')) modis++;
+    }
+
+    return { viirs, modis };
+  }
+
+  function setStatus(message, visible = true) {
+    statusBox.textContent = message;
+    statusBox.classList.toggle('hidden', !visible);
+  }
+
+  async function fetchGzipJson(day) {
+    if (dayCache.has(day)) {
+      const cached = dayCache.get(day);
+      // Refresh insertion order for the small LRU cache.
+      dayCache.delete(day);
+      dayCache.set(day, cached);
+      return cached;
+    }
+
+    if (!('DecompressionStream' in window)) {
+      throw new Error(
+        'This browser does not support gzip decompression. Please use a recent version of Chrome, Edge, Firefox or Safari.'
+      );
+    }
+
+    const response = await fetch(`./${day}.json.gz`);
+    if (!response.ok) {
+      throw new Error(`Could not load ${day}.json.gz (HTTP ${response.status}).`);
+    }
+
+    const compressed = await response.arrayBuffer();
+    const decompressor = new DecompressionStream('gzip');
+    const stream = new Blob([compressed]).stream().pipeThrough(decompressor);
+    const jsonText = await new Response(stream).text();
+    const points = JSON.parse(jsonText);
+
+    if (!Array.isArray(points)) {
+      throw new Error(`The dataset for ${day} is not a JSON array.`);
+    }
+
+    dayCache.set(day, points);
+
+    // Keep only the two most recently used dates in memory.
+    while (dayCache.size > 2) {
+      const oldestDay = dayCache.keys().next().value;
+      dayCache.delete(oldestDay);
+    }
+
+    return points;
+  }
+
+  async function renderDate(index) {
+    if (!dates.length) return;
+
+    currentIndex = Math.max(0, Math.min(Number(index) || 0, dates.length - 1));
+    const day = dates[currentIndex];
+    const thisRequest = ++requestId;
+
+    slider.value = String(currentIndex);
+    $('dateLabel').textContent = day;
+    $('selectedDate').textContent = day;
+    $('totalCount').textContent = 'Loading…';
+    $('viirsCount').textContent = '—';
+    $('modisCount').textContent = '—';
+    $('stepLabel').textContent = `Date ${currentIndex + 1} of ${dates.length}`;
+
+    setStatus(`Loading satellite detections for ${day}…`);
+
+    try {
+      const points = await fetchGzipJson(day);
+
+      // Ignore an older request if the user has already selected another date.
+      if (thisRequest !== requestId) return;
+
+      currentPoints = points;
+      const counts = sensorCounts(points);
+
+      $('totalCount').textContent = points.length.toLocaleString();
+      $('viirsCount').textContent = counts.viirs.toLocaleString();
+      $('modisCount').textContent = counts.modis.toLocaleString();
+
+      globe.pointsData(points);
+      setStatus('', false);
+      $('dataNotice').textContent =
+        `${dates.length} dates available · Showing ${points.length.toLocaleString()} detections for ${day}.`;
+      $('exportBtn').disabled = points.length === 0;
+    } catch (error) {
+      if (thisRequest !== requestId) return;
+      console.error(error);
+      currentPoints = [];
+      globe.pointsData([]);
+      $('totalCount').textContent = '—';
+      $('viirsCount').textContent = '—';
+      $('modisCount').textContent = '—';
+      $('exportBtn').disabled = true;
+      $('dataNotice').textContent = 'Could not load this date.';
+      setStatus(`Unable to load ${day}. ${error.message} Check that ${day}.json.gz and dates.json are in the same GitHub Pages directory as index.html.`);
+    }
+  }
+
+  function stopPlayback() {
+    if (playbackTimer !== null) {
+      clearTimeout(playbackTimer);
+    }
+    playbackTimer = null;
+    playBtn.textContent = '▶ Play';
+  }
+
+  function scheduleNextFrame() {
+    playbackTimer = setTimeout(async () => {
+      if (currentIndex >= dates.length - 1) {
+        stopPlayback();
+        return;
+      }
+
+      await renderDate(currentIndex + 1);
+
+      if (playbackTimer !== null && currentIndex < dates.length - 1) {
+        scheduleNextFrame();
+      } else {
+        stopPlayback();
+      }
+    }, speeds[speedIndex]);
+  }
+
+  function startPlayback() {
+    if (dates.length < 2) return;
+
+    stopPlayback();
+
+    if (currentIndex >= dates.length - 1) {
+      renderDate(0).then(() => {
+        playBtn.textContent = 'Ⅱ Pause';
+        scheduleNextFrame();
+      });
+      return;
+    }
+
+    playBtn.textContent = 'Ⅱ Pause';
+    scheduleNextFrame();
+  }
+
+  function downloadCSV() {
+    if (!currentPoints.length) return;
+
+    const day = dates[currentIndex];
+    const headers = ['date', 'latitude', 'longitude', 'frp', 'sensor'];
+    const rows = currentPoints.map(point => [
+      day,
+      point.lat,
+      point.lng,
+      point.frp ?? '',
+      point.sensor ?? ''
+    ]);
+
+    const csv = [headers, ...rows].map(row =>
+      row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(',')
+    ).join('\r\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = `so-fire-hotspots-${day}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function loadData() {
+    try {
+      const response = await fetch('./dates.json');
+
+      if (!response.ok) {
+        throw new Error(`Date index request failed (HTTP ${response.status}).`);
+      }
+
+      const dateList = await response.json();
+
+      if (!Array.isArray(dateList) || dateList.length === 0) {
+        throw new Error('dates.json must contain a non-empty array of dates.');
+      }
+
+      dates = dateList.filter(day =>
+        typeof day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(day)
+      ).sort();
+
+      if (!dates.length) {
+        throw new Error('No valid dates were found in dates.json.');
+      }
+
+      slider.min = '0';
+      slider.max = String(dates.length - 1);
+      slider.value = '0';
+      slider.disabled = dates.length < 2;
+
+      $('startDate').textContent = dates[0];
+      $('endDate').textContent = dates[dates.length - 1];
+      $('stepLabel').textContent = `${dates.length} dates available`;
+
+      playBtn.disabled = dates.length < 2;
+      speedBtn.disabled = dates.length < 2;
+      $('exportBtn').disabled = true;
+
+      globe.pointOfView({ lat: 10, lng: 10, altitude: 2.25 }, 1200);
+
+      $('dataNotice').textContent =
+        `${dates.length} dates indexed · Daily data loads when selected.`;
+
+      await renderDate(0);
+    } catch (error) {
+      console.error(error);
+      $('dataNotice').textContent = 'Dataset could not be loaded.';
+      setStatus(
+        `Could not initialise SO FIRE. ${error.message} Make sure dates.json and the daily .json.gz files are beside index.html.`
+      );
+    }
+  }
+
+  slider.addEventListener('input', () => {
+    stopPlayback();
+    renderDate(slider.value);
+  });
+
+  playBtn.addEventListener('click', () => {
+    if (playbackTimer !== null) {
+      stopPlayback();
+    } else {
+      startPlayback();
+    }
+  });
+
+  speedBtn.addEventListener('click', () => {
+    speedIndex = (speedIndex + 1) % speeds.length;
+    speedBtn.textContent = speedLabels[speedIndex];
+
+    if (playbackTimer !== null) {
+      startPlayback();
+    }
+  });
+
+  $('exportBtn').addEventListener('click', downloadCSV);
+
+  window.addEventListener('resize', () => {
+    globe.width(window.innerWidth).height(window.innerHeight);
+  });
+
+  globe.width(window.innerWidth).height(window.innerHeight);
+  loadData();
+})();
+</script>
+</body>
+</html>
