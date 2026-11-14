@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SO FIRE – slide deck (roti bakar)</title>
+<style>
+  :root { --bg:#0b1020; --panel:#111827; --line:#1f2937; --text:#f3f4f6; --muted:#b6bdc9; --accent:#fb923c; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:#05070f; color:var(--text); font-family: system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; overflow:hidden; }
+  #stage { position:absolute; left:50%; top:50%; width:1280px; height:720px; transform-origin:center; }
+  .slide { position:absolute; inset:0; background:var(--bg); padding:56px 72px; display:none; flex-direction:column; }
+  .slide.on { display:flex; }
+  h1 { font-size:104px; margin:0; letter-spacing:4px; color:var(--accent); line-height:1; }
+  h2 { font-size:54px; margin:0 0 22px; line-height:1.1; }
+  h2 em { color:var(--accent); font-style:normal; }
+  p, li { font-size:30px; line-height:1.35; margin:0; }
+  .muted { color:var(--muted); }
+  .big { font-size:40px; }
+  ul { margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:16px; }
+  li b { color:var(--accent); }
+  .row { display:flex; gap:36px; flex:1; min-height:0; align-items:center; }
+  .col { flex:1; min-width:0; }
+  img { display:block; max-width:100%; max-height:100%; border-radius:14px; border:1px solid var(--line); }
+  .shot { flex:1.5; min-width:0; display:flex; align-items:center; justify-content:center; }
+  .stats { display:flex; gap:24px; margin-top:20px; }
+  .stat { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px 24px; flex:1; }
+  .stat .n { font-size:56px; font-weight:800; color:var(--accent); line-height:1.05; }
+  .stat .l { font-size:24px; color:var(--muted); }
+  .cards { display:flex; gap:24px; margin-top:6px; }
+  .card { flex:1; background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:22px 26px; }
+  .card h3 { margin:0 0 8px; font-size:32px; color:var(--accent); }
+  .card p { font-size:26px; }
+  .steps { display:flex; gap:20px; flex:1; min-height:0; }
+  .step { flex:1; display:flex; flex-direction:column; gap:12px; min-width:0; }
+  .step .t { font-size:30px; font-weight:700; }
+  .step .t span { display:inline-block; width:44px; height:44px; line-height:44px; text-align:center; border-radius:50%; background:var(--accent); color:#0b1020; margin-right:10px; }
+  .step .im { flex:1; min-height:0; display:flex; align-items:flex-start; overflow:hidden; border-radius:14px; border:1px solid var(--line); background:var(--panel); }
+  .step .im img { border:0; border-radius:0; width:100%; height:auto; object-fit:cover; object-position:top; }
+  .grid4 { flex:1; min-height:0; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:14px 28px; }
+  .g { display:flex; flex-direction:column; gap:6px; min-height:0; }
+  .g .t { font-size:28px; font-weight:700; }
+  .g .t span { display:inline-block; width:38px; height:38px; line-height:38px; text-align:center; border-radius:50%; background:var(--accent); color:#0b1020; margin-right:10px; font-size:24px; }
+  .g .im { flex:1; min-height:0; overflow:hidden; border-radius:12px; border:1px solid var(--line); background:var(--panel); display:flex; align-items:flex-start; }
+  .g .im img { border:0; border-radius:0; width:100%; height:auto; }
+  .g p { font-size:22px; color:var(--muted); }
+  .foot { position:absolute; left:72px; right:72px; bottom:22px; display:flex; justify-content:space-between; font-size:18px; color:#8b94a5; }
+  #nav { position:fixed; bottom:10px; left:50%; transform:translateX(-50%); display:flex; gap:10px; align-items:center; z-index:10; opacity:.85; }
+  #nav button { font:inherit; font-size:16px; background:#1f2937; color:#fff; border:1px solid #374151; border-radius:8px; padding:6px 14px; cursor:pointer; }
+  #nav button:hover { border-color:var(--accent); }
+  #nav span { font-size:15px; color:#9ca3af; min-width:48px; text-align:center; }
+  a { color:var(--accent); }
+  @media print { html,body{overflow:visible;background:#fff} #nav{display:none} #stage{position:static;transform:none!important} .slide{display:flex!important;position:relative;width:1280px;height:720px;page-break-after:always} }
+  @page { size: 1280px 720px; margin:0 }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- 1 Title -->
+  <section class="slide" aria-label="Slide 1: title">
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:22px">
+      <h1>SO FIRE</h1>
+      <p class="big">A harmonized burning calendar from MODIS + VIIRS hotspots</p>
+      <p class="muted" style="margin-top:20px"><b style="color:#fff">Challenge:</b> Harmonization of MODIS and VIIRS Hot Spots</p>
+      <p class="muted"><b style="color:#fff">Team:</b> roti bakar &nbsp;·&nbsp; <b style="color:#fff">Member:</b> Kyra Leong</p>
+    </div>
+    <div class="foot"><span>August 2026 · global</span><span>kyraal.github.io/so-fire</span></div>
+  </section>
+
+  <!-- 2 Problem -->
+  <section class="slide" aria-label="Slide 2: the problem">
+    <h2>Same fires, <em>different counts</em></h2>
+    <div class="row">
+      <div class="col">
+        <ul>
+          <li><b>94%</b> of raw detections come from VIIRS: finer pixels, three satellites</li>
+          <li>Raw totals follow <b>which satellite was working</b>, not how much burned</li>
+          <li>Haze season in Southeast Asia needs a <b>fair, consistent</b> signal</li>
+        </ul>
+      </div>
+      <div class="shot"><img src="img/harmonization.png" alt="Chart: raw detections swing with satellite availability while harmonized hotspots follow a smoother pattern" /></div>
+    </div>
+  </section>
+
+  <!-- 3 Harmonization -->
+  <section class="slide" aria-label="Slide 3: harmonization">
+    <h2>Harmonize first, <em>then</em> look at patterns</h2>
+    <div class="stats">
+      <div class="stat"><div class="n">9.13M</div><div class="l">raw detections, 4 sensors</div></div>
+      <div class="stat"><div class="n">3.18M</div><div class="l">fire-active 1 km cell-days</div></div>
+      <div class="stat"><div class="n">4.3 MW</div><div class="l">MODIS-equivalent floor</div></div>
+    </div>
+    <ul style="margin-top:30px">
+      <li><b>1.</b> One ~1 km equal-area grid for every sensor</li>
+      <li><b>2.</b> One record per cell per day, whoever saw it</li>
+      <li><b>3.</b> Small VIIRS-only fires flagged, not mixed in</li>
+      <li><b>4.</b> Satellite outages flagged so a gap is not a lull</li>
+    </ul>
+  </section>
+
+  <!-- 4 The project -->
+  <section class="slide" aria-label="Slide 4: the web app" style="padding-bottom:40px">
+    <h2 style="margin-bottom:14px">The tool: <em>burning calendar</em> + map</h2>
+    <div style="flex:1;min-height:0;display:flex;justify-content:center"><img src="img/app.png" alt="Screenshot of the SO FIRE web app for Southeast Asia: map of hotspots on the left, KPIs and burning calendar on the right" style="max-height:100%" /></div>
+  </section>
+
+  <!-- 5 User experience -->
+  <section class="slide" aria-label="Slide 5: user experience" style="padding-bottom:36px">
+    <h2 style="margin-bottom:12px">User experience: <em>four moves</em></h2>
+    <div class="grid4">
+      <div class="g"><div class="t"><span>1</span>Choose an area</div><div class="im"><img src="img/ux_area.png" alt="Area controls: preset list, draw box, pick centre and radius" /></div><p>Draw a box, pick a point, or type lat/lon</p></div>
+      <div class="g"><div class="t"><span>2</span>Read the calendar</div><div class="im"><img src="img/ux_calendar.png" alt="Calendar of daily change versus the August mean in blue and orange" /></div><p>Colour-blind-safe ramps and anomalies</p></div>
+      <div class="g"><div class="t"><span>3</span>Click a day</div><div class="im"><img src="img/ux_day.png" alt="Detail line for a selected day: hotspots, percent versus mean, rank" /></div><p>Map focuses; rank, anomaly, sensor gaps</p></div>
+      <div class="g"><div class="t"><span>4</span>Download</div><div class="im"><img src="img/ux_downloads.png" alt="Download buttons for hotspot CSV, daily summary CSV and share link" /></div><p>CSV, PNG/SVG, shareable link</p></div>
+    </div>
+  </section>
+
+  <!-- 6 NASA / space data -->
+  <section class="slide" aria-label="Slide 6: space-based data">
+    <h2>Possible because data from space is <em>open</em></h2>
+    <div class="cards">
+      <div class="card"><h3>MODIS</h3><p>Terra and Aqua. 1 km. The long record.</p></div>
+      <div class="card"><h3>VIIRS</h3><p>Suomi-NPP, NOAA-20, NOAA-21. 375 m. The detail.</p></div>
+      <div class="card"><h3>NASA FIRMS</h3><p>Free active-fire data, global, near-daily.</p></div>
+    </div>
+    <ul style="margin-top:34px">
+      <li>Four satellites, one consistent view, <b>no ground sensors needed</b></li>
+      <li>Open tools: Leaflet, OpenStreetMap, Natural Earth</li>
+      <li>Static site: <b>no server, free to host and reuse</b></li>
+    </ul>
+  </section>
+
+  <!-- 7 Impact -->
+  <section class="slide" aria-label="Slide 7: impact and next steps">
+    <h2>Why it matters, <em>what's next</em></h2>
+    <div class="row">
+      <div class="col">
+        <ul>
+          <li><b>Early warning:</b> is today unusual for this area?</li>
+          <li><b>Haze:</b> Southeast Asia peaks on 29 Aug, 72% above the August mean</li>
+          <li><b>Honest:</b> August 2026 only, hotspots not burned area</li>
+          <li><b>Next:</b> extend back to 2000 for multi-year anomalies</li>
+        </ul>
+        <p class="muted" style="margin-top:28px;font-size:26px">kyraal.github.io/so-fire</p>
+      </div>
+      <div class="shot"><img src="img/ux_map.png" alt="Southeast Asia hotspot map on the peak day" /></div>
+    </div>
+  </section>
+</div>
+
+<div id="nav"><button id="prev" aria-label="Previous slide">◀</button><span id="count"></span><button id="next" aria-label="Next slide">▶</button><button id="pdf" onclick="window.print()">PDF</button></div>
+
+<script>
+  const slides = [...document.querySelectorAll('.slide')], stage = document.getElementById('stage');
+  let i = Math.max(0, Math.min(slides.length - 1, (parseInt(location.hash.slice(1)) || 1) - 1));
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('on', k === i));
+    document.getElementById('count').textContent = `${i + 1} / ${slides.length}`;
+    history.replaceState(null, '', '#' + (i + 1));
+  }
+  function fit() { const s = Math.min(innerWidth / 1280, (innerHeight - 40) / 720); stage.style.transform = `translate(-50%,-50%) scale(${s})`; }
+  addEventListener('hashchange', () => { const n = (parseInt(location.hash.slice(1)) || 1) - 1; if (n !== i) show(n); });
+  addEventListener('resize', fit); fit(); show(i);
+  document.getElementById('prev').onclick = () => show(i - 1);
+  document.getElementById('next').onclick = () => show(i + 1);
+  addEventListener('keydown', (e) => {
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); show(i + 1); }
+    if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); show(i - 1); }
+    if (e.key === 'Home') show(0); if (e.key === 'End') show(slides.length - 1);
+  });
+  document.getElementById('stage').addEventListener('click', (e) => show(e.clientX > innerWidth / 2 ? i + 1 : i - 1));
+</script>
+</body>
+</html>
